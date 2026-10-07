@@ -3,19 +3,8 @@ import { websocketBase } from '../utils/helpers';
 
 const apiURL = (import.meta.env.VITE_API_URL?.trim() || window.location.origin).replace(/\/+$/, '');
 const wsURL = websocketBase(apiURL, import.meta.env.VITE_WS_URL);
-const TOKEN_KEY = 'rtsp-viewer.access-token';
-
-function readAccessToken(): string {
-  try {
-    const stored = window.localStorage.getItem(TOKEN_KEY)?.trim();
-    if (stored) return stored;
-  } catch {
-    /* Private mode and SSR have no localStorage. */
-  }
-  return (import.meta.env.VITE_ACCESS_TOKEN ?? '').trim();
-}
-
-let accessToken = readAccessToken();
+export const workspaceToken = (import.meta.env.VITE_ACCESS_TOKEN ?? '').trim();
+let accessToken = '';
 
 export class APIError extends Error {
   constructor(
@@ -28,12 +17,6 @@ export class APIError extends Error {
 }
 export function setAccessToken(value: string): void {
   accessToken = value.trim();
-  try {
-    if (accessToken) window.localStorage.setItem(TOKEN_KEY, accessToken);
-    else window.localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    /* Ignore quota / private-mode write failures. */
-  }
 }
 
 async function request<T>(path: string, options: RequestInit = {}, authorize = true): Promise<T> {

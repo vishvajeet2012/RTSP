@@ -727,6 +727,32 @@ input[aria-invalid='true'] {
   width: 100%;
   margin-top: 16px;
 }
+.review-token {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 12px;
+  border: 1px solid #2d2d2d;
+  border-radius: 10px;
+  background: #101010;
+}
+.review-token > span {
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #8a8a8a;
+}
+.review-token code,
+.review-token-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: #f2f2f2;
+  word-break: break-all;
+  user-select: all;
+}
+.review-token .button {
+  width: 100%;
+}
 .spin {
   animation: rotate 1s linear infinite;
 }

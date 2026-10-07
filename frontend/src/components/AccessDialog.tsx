@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { KeyRound, X } from 'lucide-react';
+import { ClipboardPaste, KeyRound, X } from 'lucide-react';
+import { workspaceToken } from '../services/api';
 
 export function AccessDialog({
   open,
@@ -47,14 +48,29 @@ export function AccessDialog({
         </div>
         <h2 id="access-title">Workspace access</h2>
         <p>
-          Enter the access token configured on your backend. It is saved in this browser so you do
-          not have to enter it on every visit.
+          Enter the access token configured on your backend. It is kept in this tab’s memory and
+          cleared on reload.
         </p>
+        {workspaceToken ? (
+          <div className="review-token">
+            <span>Review token</span>
+            <code>{workspaceToken}</code>
+            <button
+              type="button"
+              className="button secondary compact"
+              onClick={() => setValue(workspaceToken)}
+            >
+              <ClipboardPaste size={14} />
+              Paste token
+            </button>
+          </div>
+        ) : null}
         <label htmlFor="token">Backend access token</label>
         <input
           id="token"
-          type="password"
+          type="text"
           autoComplete="off"
+          spellCheck={false}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Enter token, or leave blank for local development"

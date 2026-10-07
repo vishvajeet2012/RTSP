@@ -1,5 +1,6 @@
-import { KeyRound, Radar } from 'lucide-react';
+import { ClipboardPaste, KeyRound, Radar } from 'lucide-react';
 import type { BackendState } from '../types/stream';
+import { workspaceToken } from '../services/api';
 
 const labels: Record<BackendState, string> = {
   connected: 'Backend connected',
@@ -7,7 +8,15 @@ const labels: Record<BackendState, string> = {
   checking: 'Checking backend',
   degraded: 'FFmpeg unavailable',
 };
-export function Header({ backend, onAccess }: { backend: BackendState; onAccess(): void }) {
+export function Header({
+  backend,
+  onAccess,
+  onPasteToken,
+}: {
+  backend: BackendState;
+  onAccess(): void;
+  onPasteToken?(): void;
+}) {
   return (
     <header className="topbar">
       <div className="shell nav-inner">
@@ -25,6 +34,16 @@ export function Header({ backend, onAccess }: { backend: BackendState; onAccess(
             <i className="status-dot" />
             <span>{labels[backend]}</span>
           </span>
+          {workspaceToken && onPasteToken ? (
+            <button
+              className="button secondary compact"
+              onClick={onPasteToken}
+              aria-label="Paste workspace access token"
+            >
+              <ClipboardPaste size={15} />
+              <span>Paste token</span>
+            </button>
+          ) : null}
           <button
             className="button secondary compact"
             onClick={onAccess}

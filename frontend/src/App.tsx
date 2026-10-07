@@ -7,16 +7,26 @@ import { AddStreamForm } from './components/AddStreamForm';
 import { EmptyState } from './components/EmptyState';
 import { StreamGrid } from './components/StreamGrid';
 import { useStreams } from './hooks/useStreams';
-import { setAccessToken } from './services/api';
+import { setAccessToken, workspaceToken } from './services/api';
 
 export default function App() {
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessRevision, setAccessRevision] = useState(0);
   const store = useStreams(accessRevision);
   const connected = store.streams.filter((s) => s.status === 'live').length;
+  const pasteToken = () => {
+    if (!workspaceToken) return;
+    setAccessToken(workspaceToken);
+    setAccessRevision((v) => v + 1);
+    toast('Connecting to workspace…');
+  };
   return (
     <>
-      <Header backend={store.backend} onAccess={() => setAccessOpen(true)} />
+      <Header
+        backend={store.backend}
+        onAccess={() => setAccessOpen(true)}
+        onPasteToken={workspaceToken ? pasteToken : undefined}
+      />
       <main className="shell main-content">
         <section className="hero">
           <div>
@@ -46,20 +56,32 @@ export default function App() {
               {store.backend === 'degraded'
                 ? 'FFmpeg is missing on the backend. Install it or update FFMPEG_PATH.'
                 : store.error}
-            </span>
-            <button
-              className="button secondary compact"
-              onClick={store.authRequired ? () => setAccessOpen(true) : store.refresh}
-            >
-              {store.authRequired ? (
-                'Enter token'
-              ) : (
+              {store.authRequired && workspaceToken ? (
                 <>
-                  <RotateCw size={13} />
-                  Retry
+                  {' '}
+                  Review token: <code className="review-token-value">{workspaceToken}</code>
                 </>
-              )}
-            </button>
+              ) : null}
+            </span>
+            {store.authRequired && workspaceToken ? (
+              <button className="button primary compact" onClick={pasteToken}>
+                Paste token
+              </button>
+            ) : (
+              <button
+                className="button secondary compact"
+                onClick={store.authRequired ? () => setAccessOpen(true) : store.refresh}
+              >
+                {store.authRequired ? (
+                  'Enter token'
+                ) : (
+                  <>
+                    <RotateCw size={13} />
+                    Retry
+                  </>
+                )}
+              </button>
+            )}
           </div>
         ) : null}
         <AddStreamForm
