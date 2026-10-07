@@ -1,0 +1,102 @@
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1.21.1
+    ports:
+      - '127.0.0.1:8554:8554'
+    volumes:
+      - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    restart: unless-stopped
+
+  test-publisher:
+    image: jrottenberg/ffmpeg:7.1-alpine
+    depends_on: [mediamtx]
+    command:
+      [
+        '-hide_banner',
+        '-loglevel',
+        'warning',
+        '-re',
+        '-f',
+        'lavfi',
+        '-i',
+        'testsrc2=size=960x540:rate=25',
+        '-an',
+        '-c:v',
+        'libx264',
+        '-preset',
+        'ultrafast',
+        '-tune',
+        'zerolatency',
+        '-pix_fmt',
+        'yuv420p',
+        '-g',
+        '25',
+        '-threads',
+        '2',
+        '-rtsp_transport',
+        'tcp',
+        '-f',
+        'rtsp',
+        'rtsp://mediamtx:8554/test',
+      ]
+    restart: unless-stopped
+
+  test-publisher-2:
+    image: jrottenberg/ffmpeg:7.1-alpine
+    depends_on: [mediamtx]
+    command:
+      [
+        '-hide_banner',
+        '-loglevel',
+        'warning',
+        '-re',
+        '-f',
+        'lavfi',
+        '-i',
+        'testsrc2=size=640x360:rate=25',
+        '-an',
+        '-c:v',
+        'libx264',
+        '-preset',
+        'ultrafast',
+        '-tune',
+        'zerolatency',
+        '-pix_fmt',
+        'yuv420p',
+        '-g',
+        '25',
+        '-threads',
+        '2',
+        '-rtsp_transport',
+        'tcp',
+        '-f',
+        'rtsp',
+        'rtsp://mediamtx:8554/test2',
+      ]
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    ports:
+      - '127.0.0.1:8080:8080'
+    environment:
+      PORT: '8080'
+      APP_ENV: development
+      ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      ALLOWED_RTSP_HOSTS: mediamtx
+      FFMPEG_PATH: ffmpeg
+      STREAM_RECONNECT_MAX_ATTEMPTS: '5'
+      MAX_STREAMS: '6'
+      API_TOKEN: ${API_TOKEN:-}
+    depends_on: [mediamtx]
+    restart: unless-stopped
+
+  frontend:
+    profiles: [web]
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - '127.0.0.1:5173:80'
+    depends_on: [backend]
+    restart: unless-stopped

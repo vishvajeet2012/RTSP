@@ -1,0 +1,34 @@
+FROM node:22-bookworm-slim AS frontend
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY frontend/package.json ./frontend/package.json
+RUN npm ci
+COPY frontend ./frontend
+RUN npm run build
+
+FROM golang:1.26-bookworm AS builder
+WORKDIR /app
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download
+COPY backend .
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /server ./cmd/server
+
+FROM bluenviron/mediamtx:1.21.1 AS media
+
+FROM ubuntu:26.04
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg ca-certificates tini bash \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --system --uid 10001 --create-home app
+WORKDIR /app
+COPY --from=builder /server /app/server
+COPY --from=frontend /app/frontend/dist /app/web
+COPY --from=media /mediamtx /usr/local/bin/mediamtx
+COPY backend/deploy/mediamtx.yml /app/mediamtx.yml
+COPY backend/deploy/run-demo.sh /app/run-demo.sh
+RUN chmod +x /app/run-demo.sh
+USER app
+ENV PORT=8080
+ENV FRONTEND_DIR=/app/web
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/tini", "-g", "--"]
+CMD ["/app/run-demo.sh"]

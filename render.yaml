@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: rtsp-stream-viewer
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile.demo
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: API_TOKEN
+        generateValue: true
+      - key: ALLOWED_RTSP_HOSTS
+        value: localhost,127.0.0.1
+      - key: MAX_STREAMS
+        value: '6'
