@@ -47,8 +47,8 @@ export function AccessDialog({
         </div>
         <h2 id="access-title">Workspace access</h2>
         <p>
-          Enter the access token configured on your backend. It is kept in this tab’s memory and
-          cleared on reload.
+          Enter the access token configured on your backend. It is saved in this browser so you do
+          not have to enter it on every visit.
         </p>
         <label htmlFor="token">Backend access token</label>
         <input
